@@ -4,63 +4,308 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coffee Talk English</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Comic Neue', cursive;
+            background-color: #F8F4E3;
+            color: #3C2F2F;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #FFFFFF;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            color: #6C4A4A;
+        }
+        .btn-primary {
+            background-color: #D2B48C;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #A68C6A;
+        }
+        .phrase-card, .quiz-box, .reward-box {
+            border: 1px solid #E0E0E0;
+            border-radius: 0.5rem;
+        }
+        .option {
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .option:hover {
+            background-color: #E0E0E0;
+            transform: translateY(-2px);
+        }
+        .option.correct {
+            background-color: #A9D1A9;
+            color: white;
+        }
+        .option.wrong {
+            background-color: #E8A8A8;
+            color: white;
+        }
+        .audio-icon {
+            cursor: pointer;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .reward-box img {
+            animation: bounce 1s infinite;
+        }
+    </style>
 </head>
-<body>
+<body class="p-4">
 
-    <div class="container">
-        <header>
-            <h1 class="title">¡Hola, Barista Bilingüe! ☕</h1>
-            <p>Aprende inglés para tu cafetería de forma fácil y divertida. ¡Solo escucha, repite y practica!</p>
+    <!-- Audio de fondo -->
+    <audio id="background-audio" loop muted>
+        <source src="coffee_song.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="container mx-auto p-6 md:p-10 rounded-xl shadow-lg mt-8 bg-white">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold section-title mb-2">¡Hola, Barista Bilingüe! ☕</h1>
+            <p class="text-lg md:text-xl text-gray-600">Aprende inglés para tu cafetería, ¡gana recompensas y diviértete!</p>
         </header>
 
-        <section class="phrases">
-            <h2 class="section-title">Frases Esenciales</h2>
-            <p class="subtitle">Toca el altavoz para escuchar la frase.</p>
-            <div id="phraseList" class="phrases-grid">
-                </div>
-        </section>
-        
-        <hr>
-
-        <section class="quiz-section">
-            <h2 class="section-title">¡Juguemos a la Orden!</h2>
-            <p class="subtitle">Responde las preguntas y gana puntos.</p>
-            <div id="quiz" class="quiz-container">
-                <div class="welcome-message">
-                    <p>¡Practica tus habilidades con un pequeño quiz!</p>
-                    <button id="startQuiz" class="button">Empezar Quiz</button>
-                    <button id="scoreBtn" class="button">Ver Puntaje</button>
-                </div>
+        <!-- Sección de progreso de nivel -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-2">
+                <span id="level-title" class="text-lg font-bold text-gray-700"></span>
+                <span id="quiz-progress" class="text-sm text-gray-500"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div id="progress-bar" class="bg-yellow-500 h-4 rounded-full transition-all duration-500 ease-in-out" style="width: 0%;"></div>
             </div>
         </section>
 
-        <hr>
-
-        <section class="converter-section">
-            <h2 class="section-title">Conversor Instantáneo</h2>
-            <p class="subtitle">Escribe una frase en español y te daré una sugerencia en inglés.</p>
-            <div class="converter-box">
-                <textarea id="inputEs" rows="3" placeholder="Escribe aquí, por ejemplo: ¿Me da un café con leche para llevar?"></textarea>
-                <button id="convBtn" class="button">Traducir</button>
-                <div id="convResult" class="result-box"></div>
-            </div>
+        <!-- Sección de contenido principal: Palabras, Quiz y Recompensas -->
+        <section id="content-container" class="space-y-8">
+            <!-- El contenido dinámico se carga aquí -->
         </section>
-
-        <hr>
-
-        <section class="recognition-section">
-            <h2 class="section-title">Tu Pronunciación</h2>
-            <p class="subtitle">Presiona el micrófono y di una frase en inglés. ¡Te diré si se escucha bien!</p>
-            <div class="recognition-box">
-                <button id="startRec" class="button">🎤 Empezar a Hablar</button>
-                <button id="stopRec" class="button">⏹️ Detener</button>
-                <div id="recognized" class="recognition-result">...</div>
-            </div>
-        </section>
-
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const contentContainer = document.getElementById('content-container');
+        const levelTitleEl = document.getElementById('level-title');
+        const quizProgressEl = document.getElementById('quiz-progress');
+        const progressBarEl = document.getElementById('progress-bar');
+        
+        let currentLevel = 0;
+        let score = 0;
+
+        // Base de datos de palabras y preguntas
+        const ALL_WORDS = [
+            { es: "Hola", en: "Hello" }, { es: "Gracias", en: "Thank you" }, { es: "Por favor", en: "Please" },
+            { es: "Café", en: "Coffee" }, { es: "Té", en: "Tea" }, { es: "Agua", en: "Water" },
+            { es: "Panecillo", en: "Muffin" }, { es: "Sándwich", en: "Sandwich" }, { es: "Croissant", en: "Croissant" },
+            { es: "Leche", en: "Milk" }, { es: "Azúcar", en: "Sugar" }, { es: "Hielo", en: "Ice" },
+            { es: "Taza", en: "Cup" }, { es: "Vaso", en: "Glass" }, { es: "Cuchara", en: "Spoon" },
+            { es: "Para aquí", en: "For here" }, { es: "Para llevar", en: "To go" }, { es: "Cuchillo", en: "Knife" },
+            { es: "Tenedor", en: "Fork" }, { es: "Servilleta", en: "Napkin" }, { es: "Cuenta", en: "Bill" },
+            { es: "Pastel", en: "Cake" }, { es: "Pan", en: "Bread" }, { es: "Galleta", en: "Cookie" },
+            { es: "Jugo", en: "Juice" }, { es: "Con", en: "With" }, { es: "Sin", en: "Without" },
+            { es: "¿Algo más?", en: "Anything else?" }, { es: "Total", en: "Total" }, { es: "Tarjeta", en: "Card" },
+            { es: "¿Qué desea?", en: "What would you like?" }, { es: "Caliente", en: "Hot" }, { es: "Frío", en: "Cold" },
+            { es: "Mesa", en: "Table" }, { es: "Silla", en: "Chair" }, { es: "Abierto", en: "Open" },
+            { es: "Cerrado", en: "Closed" }, { es: "Listo", en: "Ready" }, { es: "Aquí", en: "Here" },
+            { es: "Allá", en: "There" }
+        ];
+
+        const ALL_QUESTIONS = [
+            { q: '¿Cómo se dice "Gracias" en inglés?', options: ['Sorry', 'Please', 'Thank you'], a: 2 },
+            { q: 'Si un cliente dice "Hello!", ¿qué le respondes?', options: ['Goodbye!', 'Welcome!', 'Thank you!'], a: 1 },
+            { q: 'Para pedir un "muffin", se dice:', options: ['A pastry', 'A muffin', 'A cake'], a: 1 },
+            { q: '¿Cómo se dice "Para llevar" en inglés?', options: ['To go', 'For home', 'For now'], a: 0 },
+            { q: 'Si te piden "a small coffee", ¿qué significa?', options: ['Un café pequeño', 'Un café dulce', 'Un café grande'], a: 0 },
+            { q: 'Si el cliente dice "Good morning!", ¿a qué hora llega?', options: ['En la tarde', 'En la noche', 'En la mañana'], a: 2 },
+            { q: 'Un cliente pide "A cookie". ¿Qué quiere?', options: ['Un pan', 'Una galleta', 'Un pastel'], a: 1 },
+            { q: 'Para preguntar si el cliente quiere algo más, dices:', options: ['What is more?', 'Anything else?', 'More?'], a: 1 },
+            { q: '¿Cómo se dice "Con azúcar" en inglés?', options: ['With sugar', 'Without sugar', 'Sugar with'], a: 0 },
+            { q: 'Si te piden "an iced coffee", ¿qué significa?', options: ['Un café con hielo', 'Un café caliente', 'Un café sin leche'], a: 0 },
+            { q: 'Un cliente te pide un "spoon". ¿Qué le das?', options: ['Un tenedor', 'Un cuchillo', 'Una cuchara'], a: 2 },
+            { q: 'Si el letrero de la cafetería dice "Closed", ¿qué significa?', options: ['Abierto', 'Cerrado', 'Ocupado'], a: 1 }
+        ];
+
+        const REWARDS = ["un café gratis", "una gorra de la cafetería", "media hora de descanso", "el café de la casa"];
+        
+        // --- Generar todos los niveles y quizzes ---
+        const QUIZZES = [];
+        for (let i = 0; i < 30; i++) {
+            const shuffledWords = [...ALL_WORDS].sort(() => 0.5 - Math.random()).slice(0, 10);
+            const shuffledQuestions = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, 12);
+            QUIZZES.push({
+                name: `Nivel ${i + 1}`,
+                words: shuffledWords,
+                questions: shuffledQuestions
+            });
+        }
+
+        // Funciones de audio
+        const synth = window.speechSynthesis;
+        function speak(text) {
+            if (synth.speaking) {
+                console.error('speechSynthesis.speaking');
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            synth.speak(utterance);
+        }
+
+        // --- Manejo del flujo de juego ---
+        function renderContent() {
+            if (currentLevel >= QUIZZES.length) {
+                showFinalMessage();
+                return;
+            }
+            const currentQuizData = QUIZZES[currentLevel];
+            
+            levelTitleEl.textContent = currentQuizData.name;
+            quizProgressEl.textContent = `Nivel ${currentLevel + 1} de ${QUIZZES.length}`;
+            const progressPercentage = ((currentLevel + 1) / QUIZZES.length) * 100;
+            progressBarEl.style.width = `${progressPercentage}%`;
+
+            renderWords(currentQuizData.words);
+        }
+
+        function renderWords(words) {
+            const wordCards = words.map(p => `
+                <div class="bg-gray-100 p-4 rounded-lg flex flex-col items-center">
+                    <span class="text-xs text-gray-500">${p.es}</span>
+                    <span class="text-xl font-bold mt-1">${p.en}</span>
+                    <div class="mt-2 text-xl audio-icon" onclick="speak('${p.en}')">🔊</div>
+                </div>
+            `).join('');
+            
+            contentContainer.innerHTML = `
+                <h2 class="text-2xl font-bold section-title text-center mb-4">Lección de Vocabulario</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    ${wordCards}
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="showQuiz()" class="btn-primary py-3 px-8 text-white rounded-full font-bold">¡Estoy lista para el quiz!</button>
+                </div>
+            `;
+        }
+
+        function showQuiz() {
+            const quizData = QUIZZES[currentLevel];
+            const optionsHtml = quizData.questions.map((q, qIndex) => `
+                <div class="mb-6">
+                    <p class="text-lg font-semibold mb-2">${qIndex + 1}. ${q.q}</p>
+                    <div id="q-${qIndex}" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        ${q.options.map((o, oIndex) => `
+                            <div class="option p-3 rounded-lg text-center cursor-pointer bg-gray-100" data-q-index="${qIndex}" data-o-index="${oIndex}">
+                                ${o}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            contentContainer.innerHTML = `
+                <h2 class="text-2xl font-bold section-title text-center mb-4">¡Es Hora del Quiz!</h2>
+                ${optionsHtml}
+                <div id="quiz-feedback" class="text-center text-lg mt-4 font-bold"></div>
+                <div class="text-center mt-6 hidden" id="next-level-btn-container">
+                    <button onclick="moveToNextLevel()" class="btn-primary py-3 px-8 text-white rounded-full font-bold">Siguiente Nivel</button>
+                </div>
+            `;
+            
+            // Asignar los eventos de clic a las opciones
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', () => {
+                    checkAnswer(option);
+                });
+            });
+        }
+
+        function checkAnswer(element) {
+            const questionIndex = parseInt(element.dataset.qIndex);
+            const selectedOptionIndex = parseInt(element.dataset.o-index);
+            const quizData = QUIZZES[currentLevel];
+            const correctOptionIndex = quizData.questions[questionIndex].a;
+            
+            const optionsContainer = document.getElementById(`q-${questionIndex}`);
+            const options = optionsContainer.querySelectorAll('.option');
+            options.forEach(opt => opt.style.pointerEvents = 'none'); // Deshabilitar clics
+
+            if (selectedOptionIndex === correctOptionIndex) {
+                element.classList.add('correct');
+                score++;
+            } else {
+                element.classList.add('wrong');
+                options[correctOptionIndex].classList.add('correct');
+            }
+
+            // Verificar si todas las preguntas han sido respondidas
+            const allAnswered = Array.from(document.querySelectorAll('.option')).every(opt => opt.classList.contains('correct') || opt.classList.contains('wrong'));
+            
+            if (allAnswered) {
+                setTimeout(() => {
+                    document.getElementById('quiz-feedback').innerHTML = `<span class="text-green-600">¡Quiz completado!</span>`;
+                    document.getElementById('next-level-btn-container').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        window.moveToNextLevel = () => {
+            showReward();
+        };
+
+        function showReward() {
+            const rewardIndex = currentLevel % REWARDS.length;
+            const reward = REWARDS[rewardIndex];
+            contentContainer.innerHTML = `
+                <div class="reward-box text-center p-6 bg-white rounded-lg shadow-inner">
+                    <h2 class="text-3xl font-bold section-title mb-4">¡Nivel Completado! 🎉</h2>
+                    <p class="text-xl">¡Felicidades, Barista Bilingüe! Te has ganado</p>
+                    <div class="flex flex-col items-center justify-center my-6">
+                        <img src="https://placehold.co/100x100/A68C6A/FFFFFF?text=✨" alt="Reward Icon" class="w-24 h-24">
+                        <span class="mt-4 text-2xl font-extrabold text-yellow-600 uppercase">${reward}</span>
+                    </div>
+                    <p class="text-sm italic text-gray-500">¡Habla con tu hijo/a para reclamar tu recompensa!</p>
+                    <button onclick="startNextQuiz()" class="btn-primary py-3 px-8 text-white rounded-full font-bold mt-6">Continuar</button>
+                </div>
+            `;
+        }
+
+        window.startNextQuiz = () => {
+            currentLevel++;
+            renderContent();
+        };
+
+        function showFinalMessage() {
+            contentContainer.innerHTML = `
+                <div class="text-center p-6 bg-white rounded-lg shadow-inner">
+                    <h2 class="text-3xl font-bold section-title mb-4">¡Has completado todos los niveles! 🎉</h2>
+                    <p class="text-xl">¡Felicidades, Barista Bilingüe! Ya eres una experta.</p>
+                </div>
+            `;
+            levelTitleEl.textContent = "¡Aventura Terminada!";
+            quizProgressEl.textContent = "30 de 30";
+            progressBarEl.style.width = "100%";
+        }
+        
+        // Activar audio y renderizar la página al cargar
+        document.body.addEventListener('click', function() {
+            const audio = document.getElementById('background-audio');
+            if (audio.muted) {
+                audio.muted = false;
+                audio.play();
+            }
+        }, { once: true });
+        
+        window.onload = () => {
+            renderContent();
+        };
+    </script>
 </body>
 </html>
