@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Talk English</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 class="title">¡Hola, Barista Bilingüe! ☕</h1>
+            <p>Aprende inglés para tu cafetería de forma fácil y divertida. ¡Solo escucha, repite y practica!</p>
+        </header>
+
+        <section class="phrases">
+            <h2 class="section-title">Frases Esenciales</h2>
+            <p class="subtitle">Toca el altavoz para escuchar la frase.</p>
+            <div id="phraseList" class="phrases-grid">
+                </div>
+        </section>
+        
+        <hr>
+
+        <section class="quiz-section">
+            <h2 class="section-title">¡Juguemos a la Orden!</h2>
+            <p class="subtitle">Responde las preguntas y gana puntos.</p>
+            <div id="quiz" class="quiz-container">
+                <div class="welcome-message">
+                    <p>¡Practica tus habilidades con un pequeño quiz!</p>
+                    <button id="startQuiz" class="button">Empezar Quiz</button>
+                    <button id="scoreBtn" class="button">Ver Puntaje</button>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="converter-section">
+            <h2 class="section-title">Conversor Instantáneo</h2>
+            <p class="subtitle">Escribe una frase en español y te daré una sugerencia en inglés.</p>
+            <div class="converter-box">
+                <textarea id="inputEs" rows="3" placeholder="Escribe aquí, por ejemplo: ¿Me da un café con leche para llevar?"></textarea>
+                <button id="convBtn" class="button">Traducir</button>
+                <div id="convResult" class="result-box"></div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="recognition-section">
+            <h2 class="section-title">Tu Pronunciación</h2>
+            <p class="subtitle">Presiona el micrófono y di una frase en inglés. ¡Te diré si se escucha bien!</p>
+            <div class="recognition-box">
+                <button id="startRec" class="button">🎤 Empezar a Hablar</button>
+                <button id="stopRec" class="button">⏹️ Detener</button>
+                <div id="recognized" class="recognition-result">...</div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
